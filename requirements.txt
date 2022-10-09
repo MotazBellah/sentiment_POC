@@ -1,0 +1,5 @@
+Flask==2.2.2
+torch==1.12.1
+transformers==4.22.2
+vader-multi==3.2.2.1
+

@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  sentiment_analysis:
+    build: .
+    container_name: sentiment_restapi
+    ports:
+      - "8080:8080"
