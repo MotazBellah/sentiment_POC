@@ -6,8 +6,8 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 
-DATA_MODEL = SentimentAnalysis("cardiffnlp/twitter-xlm-roberta-base-sentiment")
-# DATA_MODEL = SentimentAnalysis("nlptown/bert-base-multilingual-uncased-sentiment")
+# DATA_MODEL = SentimentAnalysis("cardiffnlp/twitter-xlm-roberta-base-sentiment")
+DATA_MODEL = SentimentAnalysis("nlptown/bert-base-multilingual-uncased-sentiment")
 
 pipe, tokenizer, config, model = DATA_MODEL.model_pipe()
 

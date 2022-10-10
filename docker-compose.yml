@@ -2,7 +2,9 @@ version: "3.7"
 
 services:
   sentiment_analysis:
-    build: .
-    container_name: sentiment_restapi
+    container_name: sentiment_analysis
     ports:
-      - "8080:8080"
+      - "8000:8000"
+    build:
+      context: .
+      dockerfile: Dockerfile
