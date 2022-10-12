@@ -1,9 +1,4 @@
-Flask==2.2.2
-gevent
-gunicorn==20.1.0
-protobuf==3.20.1
-sentencepiece==0.1.97
-scipy
-torch==1.12.1
-transformers==4.22.2
-vader-multi==3.2.2.1
+Flask
+tweetnlp
+vader-multi
+

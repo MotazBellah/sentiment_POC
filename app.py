@@ -2,61 +2,99 @@ import os
 from flask import jsonify, request, Flask
 from sentiment import SentimentAnalysis
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import tweetnlp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
 
-# DATA_MODEL = SentimentAnalysis("cardiffnlp/twitter-xlm-roberta-base-sentiment")
-DATA_MODEL = SentimentAnalysis("nlptown/bert-base-multilingual-uncased-sentiment")
-
+print("""
+    #####################################################
+    Downloading pretrained model from hugging face hub...
+    #####################################################
+    """)
+# TweetNLP model from cardiffnlp
+DATA_MODEL = SentimentAnalysis("cardiffnlp/twitter-xlm-roberta-base-sentiment")
+# multilingual model (Smaller one for testing)
+# DATA_MODEL = SentimentAnalysis("nlptown/bert-base-multilingual-uncased-sentiment")
+# Initiate the pipeline from the model
 pipe, tokenizer, config, model = DATA_MODEL.model_pipe()
 
+print("""
+    ########################################
+    Downloading tweet model from tweetnlp...
+    ########################################
+    """)
+tweet_model = tweetnlp.load('sentiment_multilingual')
 
-@app.route("/api/v1/vader",  methods=['POST'])
+
+@app.route("/vader", methods=['POST'])
 def vader():
+    """
+    vader() function do a sentiment analysis for the comment 
+    using vaderSentiment lib. it accept only post requests,
+    and get the comment value from thr request body
+    :return: json value of the sentiment analysis
+    """
     try:
         args = request.get_json()
         sentence = args['comment']
     except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)})
+        return jsonify({"error": "No comment found!"})
+
+    result = {}
+    result["scores"] = {}
 
     analyzer = SentimentIntensityAnalyzer()
     vs = analyzer.polarity_scores(sentence)
-    result = {}
-    result["scores"] = {}
+    
     if vs["compound"] >= 0.05:
         result["sentiment"] = "Positive"
     elif vs["compound"] <= -0.05:
         result["sentiment"] = "Negative"
     else:
         result["sentiment"] = "Neutral"
+
     vs.pop("compound")
     result["scores"].update(vs)
-    print(vs)
     return jsonify({"result": result})
 
 
-@app.route("/api/v1/sentiment_analysis",  methods=['POST'])
+@app.route("/hugging_face", methods=['POST'])
 def sentiment_analysis():
+    """
+    sentiment_analysis() function do a sentiment analysis for the comment
+    using pretrained ML model. it accept only post requests, 
+    and get the comment value from thr request body
+    :return: json value of the sentiment analysis
+    """
     try:
         args = request.get_json()
         sentence = args['comment']
     except Exception as e:
-        print(e)
-        return jsonify({"error": str(e)})
-
-    sentiment_map = {"1 star": "Very Negative", "2 stars": "Negative", "3 stars": "Neutral",
-                     "4 stars": "Positive", "5 stars": "Very Positive",
-                     }
+        return jsonify({"error": "No comment found!"})
 
     sentiment_result = DATA_MODEL.text_analysis(sentence, tokenizer, config, model)
-    # sentiment_result = pipe(sentence)
-    # for i in sentiment_result:
-    #     for k, v in i.items():
-    #         print(k, v)
-    #         if k == "label":
-    #             i[k] = sentiment_map[v]
+
+    return jsonify({"result": sentiment_result})
+
+
+@app.route("/weetnlp", methods=['POST'])
+def sentiment():
+    """
+    sentiment() function do a sentiment analysis for the comment
+    using pretrained ML model from tweetnlp. it accept only post requests,
+    and get the comment value from thr request body
+    :return: json value of the sentiment analysis
+    """
+    try:
+        args = request.get_json()
+        sentence = args['comment']
+    except Exception as e:
+        return jsonify({"error": "No comment found!"})
+
+    # tweet_model = tweetnlp.load('sentiment_multilingual')
+ 
+    sentiment_result = tweet_model.sentiment(sentence)
 
     return jsonify({"result": sentiment_result})
 
