@@ -3,6 +3,7 @@ from flask import jsonify, request, Flask
 from sentiment import SentimentAnalysis
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import tweetnlp
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -27,10 +28,16 @@ print("""
 tweet_model = tweetnlp.load('sentiment_multilingual')
 
 
+load_dotenv()
+
+endpoint = os.getenv('azure_endpoint')
+key = os.getenv('azure_key')
+
+
 @app.route("/vader", methods=['POST'])
 def vader():
     """
-    vader() function do a sentiment analysis for the comment 
+    vader() function do a sentiment analysis for the comment
     using vaderSentiment lib. it accept only post requests,
     and get the comment value from thr request body
     :return: json value of the sentiment analysis
@@ -46,7 +53,7 @@ def vader():
 
     analyzer = SentimentIntensityAnalyzer()
     vs = analyzer.polarity_scores(sentence)
-    
+
     if vs["compound"] >= 0.05:
         result["sentiment"] = "Positive"
     elif vs["compound"] <= -0.05:
@@ -63,7 +70,7 @@ def vader():
 def sentiment_analysis():
     """
     sentiment_analysis() function do a sentiment analysis for the comment
-    using pretrained ML model. it accept only post requests, 
+    using pretrained ML model. it accept only post requests,
     and get the comment value from thr request body
     :return: json value of the sentiment analysis
     """
@@ -73,12 +80,18 @@ def sentiment_analysis():
     except Exception as e:
         return jsonify({"error": "No comment found!"})
 
+    total_sentiment = {}
+
     sentiment_result = DATA_MODEL.text_analysis(sentence, tokenizer, config, model)
+    sentiment_azure = DATA_MODEL.azure(sentence, endpoint, key)
 
-    return jsonify({"result": sentiment_result})
+    total_sentiment["AI_Service"] = sentiment_result
+    total_sentiment["Azure"] = sentiment_azure if "sentiment" in sentiment_azure else {}
+
+    return jsonify({"result": total_sentiment})
 
 
-@app.route("/weetnlp", methods=['POST'])
+@app.route("/tweetnlp", methods=['POST'])
 def sentiment():
     """
     sentiment() function do a sentiment analysis for the comment
@@ -93,10 +106,15 @@ def sentiment():
         return jsonify({"error": "No comment found!"})
 
     # tweet_model = tweetnlp.load('sentiment_multilingual')
- 
-    sentiment_result = tweet_model.sentiment(sentence)
+    total_sentiment = {}
 
-    return jsonify({"result": sentiment_result})
+    sentiment_result = tweet_model.sentiment(sentence)
+    sentiment_azure = DATA_MODEL.azure(sentence, endpoint, key)
+
+    total_sentiment["AI_Service"] = sentiment_result
+    total_sentiment["Azure"] = sentiment_azure if "sentiment" in sentiment_azure else {}
+
+    return jsonify({"result": total_sentiment})
 
 
 if __name__ == '__main__':

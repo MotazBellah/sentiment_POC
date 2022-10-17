@@ -1,4 +1,5 @@
 Flask
 tweetnlp
 vader-multi
-
+azure-ai-textanalytics
+python-dotenv
