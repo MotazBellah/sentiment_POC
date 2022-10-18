@@ -21,6 +21,9 @@ $ docker-compose up
 ````
 After Starting the application will start to download the model.
 
+##### NOTE: In order to be able to use azure you have to use endpoint and secret key, for that rename `.env.example` file to be just `.env` and add your azure endpoint and the secret key
+
+
 ## Testing
 - Testing the weetnlp lib
 ````
